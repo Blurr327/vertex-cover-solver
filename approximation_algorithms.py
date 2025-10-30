@@ -1,6 +1,6 @@
 from basic_operations import *
 
-def couplage(g):
+def coupling(g):
     G = g.copy()
     C = []
     list_of_edges = list(G.edges)
@@ -9,10 +9,9 @@ def couplage(g):
         if edge[0] not in C and edge[1] not in C:
             C.append(edge[0])
             C.append(edge[1])
-    print(C)
     return C
 
-def glouton(g):
+def greedy(g):
     G = g.copy()
     C = []
     list_of_edges = list(G.edges)
@@ -22,6 +21,4 @@ def glouton(g):
         G = delete_node(G, v[0])
         list_of_edges = list(G.edges)
         C.append(v[0])
-
-    print(C)
     return C
