@@ -14,7 +14,7 @@ def delete_node(g, v):
 
 def delete_list_nodes(g, list_som):
     G = g.copy()
-    for som in list_som:
+    for som in set(list_som):
         G = delete_node(G, som)
     return G
 

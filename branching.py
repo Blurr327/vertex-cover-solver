@@ -11,50 +11,27 @@ def calculating_lower_bound(g):
    b3 = (2*n - 1 - (sqrt((2*n - 1)**2 - 8*m))) / 2
    return max(b1, b2, b3)
 
-def bf_vc_solver_v1_ext(g, edge_list, solution):
-   if is_vc(g, solution):
-      return solution
-
-   if len(edge_list) == 0:
-      return g.nodes
-
-   branching_edge = edge_list.pop()
-   first_case = bf_vc_solver_v1_ext(g, edge_list, solution.union({branching_edge[0]}))
-   second_case = bf_vc_solver_v1_ext(g, edge_list, solution.union({branching_edge[0]}))
-   if len(first_case) < len(second_case):
-      return first_case
-   else:
-      return second_case
-
 def bf_vc_solver_v1(g):
-   return bf_vc_solver_v1_ext(g, list(g.edges), set())
-
-def bf_vc_solver_v3_ext(g, edge_list, solution):
-   if is_vc(g, solution):
-      return solution
-
-   if len(edge_list) == 0:
-      return g.nodes
-
-   branching_edge = edge_list.pop()
-
-   first_solution = solution.union({branching_edge[0]}).union(g.adj[branching_edge[1]])
-   first_edge_list = remove_edges_containing_vertex(edge_list, branching_edge[1])
-
-   first_case = bf_vc_solver_v3_ext(g, first_edge_list, first_solution)
-
-   second_solution = solution.union({branching_edge[1]}).union(g.adj[branching_edge[0]])
-   second_edge_list = remove_edges_containing_vertex(edge_list, branching_edge[0])
-
-   second_case = bf_vc_solver_v3_ext(g, second_edge_list, second_solution)
-
+   if len(g.edges) == 0: return []
+   branching_edge = list(g.edges)[0]
+   first_case = bf_vc_solver_v1(delete_node(g, branching_edge[0]))
+   second_case = bf_vc_solver_v1(delete_node(g, branching_edge[1]))
    if len(first_case) < len(second_case):
+      first_case.append(branching_edge[0])
       return first_case
-   else:
+   else :
+      second_case.append(branching_edge[1])
       return second_case
 
 def bf_vc_solver_v3(g):
-   return bf_vc_solver_v3_ext(g, list(g.edges), set())
+   if len(g.edges) == 0: return []
+   branching_edge = list(g.edges)[0]
+   first_case = bf_vc_solver_v3(delete_list_nodes(g, [branching_edge[0]] + list(g.adj[branching_edge[1]]))) # if we remove all the neighbors that's equivalent to not picking 1 anymore
+   second_case = bf_vc_solver_v3(delete_list_nodes(g, [branching_edge[1]] + list(g.adj[branching_edge[0]])))
+   if len(first_case) < len(second_case):
+      return first_case + [branching_edge[0]]
+   else :
+      return second_case + [branching_edge[1]]
 
 if __name__ == "__main__":
    g = nx.Graph()
