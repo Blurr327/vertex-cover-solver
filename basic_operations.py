@@ -55,6 +55,7 @@ def remove_edges_containing_vertex(edges_list, vertex):
          res.remove(edge)
    return res
 
+# FIXME : might not need this
 def is_vc(g, c):
     G = delete_list_nodes(g, c)
     return len(G.edges) == 0
