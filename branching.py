@@ -6,11 +6,14 @@ from math import *
 
 def calculate_vc_lower_bound(g):
     m = len(g.edges)
+    if m == 0: return 0
     n = len(g.nodes)
     _, delta = get_node_with_max_degrees(g)
     b1 = (m + 1) // delta
-    b2 = len(coupling(g))
-    b3 = (2 * n - 1 - (sqrt((2 * n - 1) ** 2 - 8 * m))) // 2
+    b2 = (len(coupling(g))) // 2
+    b3 = 0
+    if (2 * n - 1) ** 2 - 8 * n > 0 :
+      b3 = (2 * n - 1 - (sqrt((2 * n - 1) ** 2 - 8 * n))) // 2
     return max(b1, b2, b3)
 
 
@@ -30,6 +33,36 @@ def bf_vc_solver_v1_ext(g, edge_list, solution):
 
 def bf_vc_solver_v1(g):
     return bf_vc_solver_v1_ext(g, list(g.edges), set())
+
+def bf_vc_solver_v2_ext(g, edge_list, partial_sol, best_sol):
+   if is_vc(g, partial_sol):
+      return min(best_sol, partial_sol, key=len)
+
+   size_limit = len(best_sol)
+   u, v = edge_list.pop()
+   first_sol_set = partial_sol.union({u})
+   second_sol_set = partial_sol.union({v})
+
+   first_sol_min_size = calculate_vc_lower_bound(
+      delete_list_nodes(g, first_sol_set)
+   ) + len(first_sol_set)
+
+   second_sol_min_size = calculate_vc_lower_bound(
+      delete_list_nodes(g, second_sol_set)
+   ) + len(second_sol_set)
+
+   if first_sol_min_size < size_limit :
+      first_sol = bf_vc_solver_v2_ext(g, edge_list.copy(), first_sol_set, best_sol)
+      best_sol = min(best_sol, first_sol, key=len)
+
+   if second_sol_min_size < size_limit :
+      second_sol = bf_vc_solver_v2_ext(g, edge_list.copy(), second_sol_set, best_sol)
+      best_sol = min(best_sol, second_sol, key=len)
+
+   return best_sol
+
+def bf_vc_solver_v2(g):
+   return bf_vc_solver_v2_ext(g, list(g.edges), set(), set(g.nodes))
 
 def bf_vc_solver_v3_ext(g, edge_list, solution):
    if is_vc(g, solution):
@@ -62,7 +95,7 @@ if __name__ == "__main__":
     g.add_edges_from(
         [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (1, 3), (1, 5), (1, 6), (1, 7), (1, 4), (2, 3), (2, 5), (2, 6), (2, 7), (2, 4), (3, 4), (3, 5), (3, 6), (3, 7), (4, 5), (4, 6), (4, 7), (5, 7), (5, 6), (6, 7)]
     )
-    print(bf_vc_solver_v3(g))
+    print(bf_vc_solver_v2(g))
     # show_solver_graph(1/2, bf_vc_solver_v1, 15)
     # show_solver_graph(1/2, bf_vc_solver_v3, 120)
     # experimental_test_brute_vc_v3()
