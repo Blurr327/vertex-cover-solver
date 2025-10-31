@@ -63,7 +63,28 @@ def parse_graph(name_of_file):
       g.add_edge(*edge.split(" "))
    return g
 
-# if __name__ == "__main__":
+def estimate_approximation_ratio(approximate_vc_solver, optimal_vc_solver, max_size, nb_steps=50, p=1/2):
+   nb_steps = max(nb_steps, max_size)
+   xpoints, ypoints  = [], []
+   for n in range(max_size//nb_steps, max_size+1, max_size//nb_steps):
+      g = generate_random_graph(n, p)
+      approx_sol = approximate_vc_solver(g)
+      optimal_sol = optimal_vc_solver(g)
+      if len(optimal_sol) == 0 : continue
+      ratio = len(approx_sol) / len(optimal_sol)
+      # if ratio < 1 : # DEBUG
+      #    print(g.edges)
+      #    print(g.nodes)
+      #    print("optimal", optimal_sol)
+      #    print("approx", approx_sol)
+      #    nx.draw(g, with_labels=True)
+      #    plt.show()
+      #    return #DEBUG
+      xpoints.append(n)
+      ypoints.append(ratio)
+   return np.array(xpoints), np.array(ypoints)
+
+if __name__ == "__main__":
    # Finding Nmax for coupling and gredy
    # g = generate_random_graph(200, 0.5)
    # greedy(g)
@@ -80,3 +101,5 @@ def parse_graph(name_of_file):
    # bf_vc_solver_v1(g)
 
    # save_solver_graph(p, bf_vc_solver_v1, 15, "bf_vc_solver_v1_random.png", nb_of_points=15)
+   xpoints, ypoints = estimate_approximation_ratio(greedy, bf_vc_solver_v3, 10, p=0.5, nb_steps=10)
+   save_graph(xpoints, ypoints, y_label="Ratio Approximate Solution Length / Optimal Length", filename="coupling_dense_ratio.png")
