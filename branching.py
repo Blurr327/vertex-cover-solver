@@ -3,6 +3,10 @@ from approximation_algorithms import *
 from testing import *
 from math import *
 
+def update_solutions_and_edges(g, partial_solution, possible_edges, node_to_pick, node_to_discard):
+   new_solution = partial_solution.union({node_to_pick}).union(g.adj[node_to_discard])
+   new_possible_edges = remove_edges_containing_vertex(possible_edges, node_to_discard)
+   return new_solution, new_possible_edges
 
 def calculate_vc_lower_bound(g):
     m = len(g.edges)
@@ -15,7 +19,6 @@ def calculate_vc_lower_bound(g):
     if (2 * n - 1) ** 2 - 8 * n > 0 :
       b3 = (2 * n - 1 - (sqrt((2 * n - 1) ** 2 - 8 * n))) // 2
     return max(b1, b2, b3)
-
 
 def bf_vc_solver_v1_ext(g, edge_list, solution):
    if is_vc(g, solution):
@@ -30,7 +33,6 @@ def bf_vc_solver_v1_ext(g, edge_list, solution):
    second_case = bf_vc_solver_v1_ext(g, edge_list.copy(), solution.union({v}))
    return min(first_case, second_case, key=len)
 
-
 def bf_vc_solver_v1(g):
     return bf_vc_solver_v1_ext(g, list(g.edges), set())
 
@@ -38,7 +40,6 @@ def bf_vc_solver_v2_ext(g, edge_list, partial_sol, best_sol):
    if is_vc(g, partial_sol):
       return min(best_sol, partial_sol, key=len)
 
-   size_limit = len(best_sol)
    u, v = edge_list.pop()
    first_sol_set = partial_sol.union({u})
    second_sol_set = partial_sol.union({v})
@@ -51,11 +52,11 @@ def bf_vc_solver_v2_ext(g, edge_list, partial_sol, best_sol):
       delete_list_nodes(g, second_sol_set)
    ) + len(second_sol_set)
 
-   if first_sol_min_size < size_limit :
+   if first_sol_min_size < len(best_sol) :
       first_sol = bf_vc_solver_v2_ext(g, edge_list.copy(), first_sol_set, best_sol)
       best_sol = min(best_sol, first_sol, key=len)
 
-   if second_sol_min_size < size_limit :
+   if second_sol_min_size < len(best_sol) :
       second_sol = bf_vc_solver_v2_ext(g, edge_list.copy(), second_sol_set, best_sol)
       best_sol = min(best_sol, second_sol, key=len)
 
@@ -64,28 +65,33 @@ def bf_vc_solver_v2_ext(g, edge_list, partial_sol, best_sol):
 def bf_vc_solver_v2(g):
    return bf_vc_solver_v2_ext(g, list(g.edges), set(), set(g.nodes))
 
-def bf_vc_solver_v3_ext(g, edge_list, solution):
-   if is_vc(g, solution):
-      return solution
+def bf_vc_solver_v3_ext(g, edge_list, partial_solution, best_sol):
+   if is_vc(g, partial_solution):
+      return min(partial_solution, best_sol, key=len)
 
-   best = set(g.nodes)
    for u, v in edge_list:
-      first_solution = solution.union({u}).union(g.adj[v])
-      first_edge_list = remove_edges_containing_vertex(edge_list, v)
+      first_sol_set, first_edge_list = update_solutions_and_edges(g, partial_solution, edge_list, u, v)
+      first_sol_min_size = calculate_vc_lower_bound(
+      delete_list_nodes(g, first_sol_set)
+      ) + len(first_sol_set)
 
-      first_case = bf_vc_solver_v3_ext(g, first_edge_list, first_solution)
+      if first_sol_min_size < len(best_sol):
+         first_case = bf_vc_solver_v3_ext(g, first_edge_list, first_sol_set, best_sol)
+         best_sol = min(best_sol, first_case, key=len)
 
-      second_solution = solution.union({v}).union(g.adj[u])
-      second_edge_list = remove_edges_containing_vertex(edge_list, u)
+      second_sol_set, second_edge_list = update_solutions_and_edges(g, partial_solution, edge_list, v, u)
+      second_sol_min_size = calculate_vc_lower_bound(
+      delete_list_nodes(g, second_sol_set)
+      ) + len(second_sol_set)
 
-      second_case = bf_vc_solver_v3_ext(g, second_edge_list, second_solution)
+      if second_sol_min_size < len(best_sol):
+         second_case = bf_vc_solver_v3_ext(g, second_edge_list, second_sol_set, best_sol)
+         best_sol = min(best_sol, second_case, key=len)
 
-      best = min(best, first_case, second_case, key=len)
-
-   return best
+   return best_sol
 
 def bf_vc_solver_v3(g):
-   return bf_vc_solver_v3_ext(g, list(g.edges), set())
+   return bf_vc_solver_v3_ext(g, list(g.edges), set(), list(g.nodes))
 
 
 
@@ -95,7 +101,7 @@ if __name__ == "__main__":
     g.add_edges_from(
         [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (1, 3), (1, 5), (1, 6), (1, 7), (1, 4), (2, 3), (2, 5), (2, 6), (2, 7), (2, 4), (3, 4), (3, 5), (3, 6), (3, 7), (4, 5), (4, 6), (4, 7), (5, 7), (5, 6), (6, 7)]
     )
-    print(bf_vc_solver_v2(g))
+    print(bf_vc_solver_v3(g))
     # show_solver_graph(1/2, bf_vc_solver_v1, 15)
     # show_solver_graph(1/2, bf_vc_solver_v3, 120)
     # experimental_test_brute_vc_v3()
