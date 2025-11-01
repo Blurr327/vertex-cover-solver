@@ -93,7 +93,36 @@ def bf_vc_solver_v3_ext(g, edge_list, partial_solution, best_sol):
 def bf_vc_solver_v3(g):
    return bf_vc_solver_v3_ext(g, list(g.edges), set(), list(g.nodes))
 
+def bf_vc_solver_v4_ext(g, edge_list, partial_solution, best_sol):
+   if is_vc(g, partial_solution):
+      return min(partial_solution, best_sol, key=len)
 
+   for u, v in edge_list:
+      first_sol_set, first_edge_list = update_solutions_and_edges(g, partial_solution, edge_list, u, v)
+      first_sol_min_size = calculate_vc_lower_bound(
+      delete_list_nodes(g, first_sol_set)
+      ) + len(first_sol_set)
+
+      if first_sol_min_size < len(best_sol):
+         first_case = bf_vc_solver_v4_ext(g, first_edge_list, first_sol_set, best_sol)
+         best_sol = min(best_sol, first_case, key=len)
+
+      second_sol_set, second_edge_list = update_solutions_and_edges(g, partial_solution, edge_list, v, u)
+      second_sol_min_size = calculate_vc_lower_bound(
+      delete_list_nodes(g, second_sol_set)
+      ) + len(second_sol_set)
+
+      if second_sol_min_size < len(best_sol):
+         second_case = bf_vc_solver_v4_ext(g, second_edge_list, second_sol_set, best_sol)
+         best_sol = min(best_sol, second_case, key=len)
+
+   return best_sol
+
+def bf_vc_solver_v4(g):
+   node_degrees = calculate_all_degrees(g)
+   cmp_func = lambda a : -node_degrees[a[0]]
+   sorted_edge_list = sorted(list(g.edges), key=cmp_func)
+   return bf_vc_solver_v4_ext(g, sorted_edge_list, set(), list(g.nodes))
 
 if __name__ == "__main__":
     g = nx.Graph()
@@ -101,7 +130,7 @@ if __name__ == "__main__":
     g.add_edges_from(
         [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (1, 3), (1, 5), (1, 6), (1, 7), (1, 4), (2, 3), (2, 5), (2, 6), (2, 7), (2, 4), (3, 4), (3, 5), (3, 6), (3, 7), (4, 5), (4, 6), (4, 7), (5, 7), (5, 6), (6, 7)]
     )
-    print(bf_vc_solver_v3(g))
+    print(bf_vc_solver_v4(g))
     # show_solver_graph(1/2, bf_vc_solver_v1, 15)
     # show_solver_graph(1/2, bf_vc_solver_v3, 120)
     # experimental_test_brute_vc_v3()

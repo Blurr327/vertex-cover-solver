@@ -100,6 +100,6 @@ if __name__ == "__main__":
    # g = generate_random_graph(10, 1/2)
    # bf_vc_solver_v1(g)
 
-   # save_solver_graph(p, bf_vc_solver_v1, 15, "bf_vc_solver_v1_random.png", nb_of_points=15)
-   xpoints, ypoints = estimate_approximation_ratio(greedy, bf_vc_solver_v2, 10, p=0.5, nb_steps=10)
-   save_graph(xpoints, ypoints, y_label="Ratio Approximate Solution Length / Optimal Length", filename="coupling_dense_ratio.png")
+   save_solver_graph(0.5, bf_vc_solver_v4, 12, "bf_vc_solver_v4.png", nb_of_points=12)
+   # xpoints, ypoints = estimate_approximation_ratio(greedy, bf_vc_solver_v4, 15, p=0.5, nb_steps=15)
+   # save_graph(xpoints, ypoints, y_label="Ratio Approximate Solution Length / Optimal Length", filename="greedy_dense_ratio.png")
