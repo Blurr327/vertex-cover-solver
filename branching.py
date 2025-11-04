@@ -4,11 +4,19 @@ from testing import *
 from math import *
 
 def update_solutions_and_edges(g, partial_solution, possible_edges, node_to_pick, node_to_discard):
+   """
+      Given a node to pick and another to discard, this function returns the new partial solution
+      which adds the discarded node's neighbors along with the node to keep. It also returns the
+      remaining possible edges after this operation
+   """
    new_solution = partial_solution.union({node_to_pick}).union(g.adj[node_to_discard])
    new_possible_edges = remove_edges_containing_vertex(possible_edges, node_to_discard)
    return new_solution, new_possible_edges
 
 def calculate_vc_lower_bound(g):
+    """
+      Given a graph, calculate the lower bound for a vertex cover
+    """
     m = len(g.edges)
     if m == 0: return 0
     n = len(g.nodes)
@@ -21,6 +29,9 @@ def calculate_vc_lower_bound(g):
     return max(b1, b2, b3)
 
 def bf_vc_solver_v1_ext(g, edge_list, solution):
+   """
+      Recursively find the smallest vertex cover by calculating every possibility
+   """
    if is_vc(g, solution):
       return solution
    u, v = edge_list.pop()
@@ -32,6 +43,10 @@ def bf_vc_solver_v1(g):
     return bf_vc_solver_v1_ext(g, list(g.edges), set())
 
 def bf_vc_solver_v2_ext(g, edge_list, partial_sol, best_sol):
+   """
+      Recursively finds the smallest vertex and keeps track of the best solution, only explores
+      possible solutions if they're potentially better than the current best solution.
+   """
    if is_vc(g, partial_sol):
       return min(best_sol, partial_sol, key=len)
 
@@ -47,7 +62,7 @@ def bf_vc_solver_v2_ext(g, edge_list, partial_sol, best_sol):
       delete_list_nodes(g, second_sol_set)
    ) + len(second_sol_set)
 
-   if first_sol_min_size < len(best_sol) :
+   if first_sol_min_size < len(best_sol) : # only explore if the potential solution is better than our current best one
       first_sol = bf_vc_solver_v2_ext(g, edge_list.copy(), first_sol_set, best_sol)
       best_sol = min(best_sol, first_sol, key=len)
 
@@ -61,6 +76,10 @@ def bf_vc_solver_v2(g):
    return bf_vc_solver_v2_ext(g, list(g.edges), set(), set(g.nodes))
 
 def bf_vc_solver_v3_ext(g, edge_list, partial_solution, best_sol):
+   """
+      For every edge (u, v), distinguish the case where u is kept and v is discarded and vice versa.
+      All while keeping track of the best solution
+   """
    if is_vc(g, partial_solution):
       return min(partial_solution, best_sol, key=len)
 
@@ -89,6 +108,10 @@ def bf_vc_solver_v3(g):
    return bf_vc_solver_v3_ext(g, list(g.edges), set(), coupling(g))
 
 def bf_vc_solver_v4(g):
+   """
+      Executes bf_v3 such that the u in (u, v) used for branching, has the maximal degree; executes bf_v3 with
+      an edge list sorted according to -deg(u) in (u, v)
+   """
    node_degrees = calculate_all_degrees(g)
    cmp_func = lambda a : -node_degrees[a[0]]
    sorted_edge_list = sorted(list(g.edges), key=cmp_func)
