@@ -22,10 +22,7 @@ def calculate_all_degrees(g):
   list_of_nodes = list(g.nodes)
   node_degrees = {}
   for node in list_of_nodes:
-      node_degrees[node] = 0
-  for node in list_of_nodes:
-    for _ in g.adj[node]:
-      node_degrees[node] += 1
+      node_degrees[node] = len(list(g.adj[node]))
   return node_degrees
 
 def get_node_with_max_degrees(g):
@@ -55,7 +52,6 @@ def remove_edges_containing_vertex(edges_list, vertex):
          res.remove(edge)
    return res
 
-# FIXME : might not need this
 def is_vc(g, c):
     G = delete_list_nodes(g, c)
     return len(G.edges) == 0
